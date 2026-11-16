@@ -8,10 +8,6 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
-# =====================================================
-# KONFIGURACJA
-# =====================================================
-
 IMG_SIZE = 640
 BATCH_SIZE = 8
 EPOCHS = 15
@@ -27,10 +23,6 @@ WEIGHTS = "helmet_yolov8.weights.h5"
 
 tf.keras.utils.set_random_seed(RANDOM_SEED)
 
-
-# =====================================================
-# WCZYTYWANIE XML
-# =====================================================
 
 def parse_xml(xml_path):
 
@@ -95,10 +87,7 @@ def parse_xml(xml_path):
     )
 
 
-# =====================================================
-# WCZYTANIE ZBIORU
-# =====================================================
-
+#zaciegniecie zbioru
 samples = []
 
 for xml in sorted(ANNOTATION_DIR.glob("*.xml")):
@@ -121,9 +110,7 @@ random.Random(RANDOM_SEED).shuffle(samples)
 print(f"Liczba zdjęć: {len(samples)}")
 
 
-# =====================================================
-# PODZIAŁ DANYCH 80/20
-# =====================================================
+#80 : 20 podzielenie
 
 split = int(0.8 * len(samples))
 
@@ -134,9 +121,7 @@ print(f"Train: {len(train_samples)}")
 print(f"Validation: {len(val_samples)}")
 
 
-# =====================================================
-# TWORZENIE DATASETU
-# =====================================================
+#data set
 
 def make_dataset(samples, train=True):
 
@@ -234,12 +219,7 @@ def make_dataset(samples, train=True):
 train_ds = make_dataset(train_samples, train=True)
 val_ds = make_dataset(val_samples, train=False)
 
-
-# =====================================================
-# MODEL YOLOV8
-# =====================================================
-
-print("\nBudowanie modelu...")
+#yolo
 
 backbone = keras_cv.models.YOLOV8Backbone.from_preset(
     "yolo_v8_s_backbone_coco"
@@ -253,9 +233,6 @@ model = keras_cv.models.YOLOV8Detector(
 )
 
 
-# =====================================================
-# KOMPILACJA
-# =====================================================
 
 steps_per_epoch = (
     len(train_samples) + BATCH_SIZE - 1
@@ -277,9 +254,6 @@ model.compile(
 )
 
 
-# =====================================================
-# CALLBACKS
-# =====================================================
 
 callbacks = [
 
@@ -300,11 +274,9 @@ callbacks = [
 ]
 
 
-# =====================================================
-# TRENING
-# =====================================================
 
-print("\nRozpoczynam trening...\n")
+
+print("\nStart treningu...\n")
 
 history = model.fit(
     train_ds,

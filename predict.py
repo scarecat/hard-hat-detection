@@ -8,27 +8,21 @@ import tensorflow as tf
 import keras_cv
 from PIL import Image, ImageDraw
 
-# =====================================================
-# KONFIGURACJA (MUSI być identyczna jak w treningu)
-# =====================================================
 
 IMG_SIZE = 640
 CLASSES = ["helmet", "head", "person"]
 WEIGHTS = "helmet_yolov8.weights.h5"
 
-# Niski próg w dekoderze NMS - dzięki temu w result.jpg widać też słabsze detekcje
+
 CONF_THRESHOLD = 0.25
 IOU_THRESHOLD = 0.5
 
-# Minimalna pewność, żeby daną detekcję uznać przy ocenie końcowej
-HELMET_MIN_CONF = 0.60
+# Minimalna pewność, żeby daną detekcję uznać za poprawna
+HELMET_MIN_CONF = 0.70
 HEAD_MIN_CONF = 0.40
 
 COLORS = {"helmet": "lime", "head": "red", "person": "deepskyblue"}
 
-# =====================================================
-# MODEL
-# =====================================================
 
 backbone = keras_cv.models.YOLOV8Backbone.from_preset("yolo_v8_s_backbone_coco")
 
@@ -54,9 +48,7 @@ model.compile(
 model.load_weights(WEIGHTS)
 
 
-# =====================================================
-# PREDYKCJA
-# =====================================================
+#wykrywanie
 
 def load_image(path):
     img = tf.io.decode_image(
@@ -66,7 +58,7 @@ def load_image(path):
 
 
 def detect(image_path):
-    """Zwraca listę (klasa, pewność, (x1, y1, x2, y2)) w pikselach oryginalnego zdjęcia."""
+    #lista: (klasa, stopien pewnosci, (x1, y1, x2, y2)) w pikselach oryginalnego zdjęcia.
     img = load_image(image_path)
     orig_h, orig_w = int(img.shape[0]), int(img.shape[1])
 
@@ -102,7 +94,7 @@ def detect(image_path):
 
 
 def evaluate(detections):
-    """Ocena BHP. Brak pewnego kasku = do sprawdzenia (bezpieczniejsza decyzja)."""
+
     helmets = [d for d in detections if d[0] == "helmet" and d[1] >= HELMET_MIN_CONF]
     heads = [d for d in detections if d[0] == "head" and d[1] >= HEAD_MIN_CONF]
     persons = [d for d in detections if d[0] == "person"]
@@ -128,7 +120,7 @@ def draw_results(image_path, detections, save_path):
 def check_helmet(image_path, save_path="result.jpg"):
     detections = detect(image_path)
 
-    print("\n--- WYKRYTE OBIEKTY ---")
+    print("\nWykryto:")
     if not detections:
         print("Brak detekcji.")
     for name, score, (x1, y1, x2, y2) in detections:
@@ -137,7 +129,7 @@ def check_helmet(image_path, save_path="result.jpg"):
     print(f"\n{evaluate(detections)}")
 
     draw_results(image_path, detections, save_path)
-    print(f"Zapisano wynik: {save_path}")
+    print(f"Zapisano w: {save_path}")
 
 
 if __name__ == "__main__":
